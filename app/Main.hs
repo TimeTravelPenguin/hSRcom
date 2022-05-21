@@ -1,8 +1,8 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
+import Control.Arrow ((>>>))
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Lens (key, _String)
@@ -14,33 +14,43 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Text.Lazy.IO as TIO
 import Lib
-import Network.Wreq (asJSON, responseBody, responseStatus, Response)
-import System.IO (IOMode (WriteMode), hClose, hFlush, hPutStr, openFile)
+import Network.Wreq (Response, asJSON, responseBody, responseStatus)
 import System.Console.ANSI
-import Lib (getResource, GamesUri (GamesId))
+import System.IO (IOMode (WriteMode), hClose, hFlush, hPutStr, openFile)
 
 -- http://www.serpentine.com/wreq/tutorial.html#interactive-usage
 
-testOutJson :: BSL.ByteString -> IO ()
-testOutJson !json = do
+outJson :: BSL.ByteString -> IO ()
+outJson json = do
   h <- openFile "D:\\Haskell\\hSRCom\\jsonExport.json" WriteMode
   TIO.hPutStr h $ TLE.decodeUtf8 json
   hFlush h
   hClose h
 
---showResponse :: Response a -> IO ()
+printRed :: Show a => a -> IO ()
+printRed msg = do
+  setSGR [SetColor Foreground Dull Red]
+  putStrLn ""
+  print msg
+  putStrLn ""
+  setSGR [Reset]
+
 showResponse :: Response BSL.ByteString -> IO ()
 showResponse response = do
-  setSGR [SetColor Foreground Dull Red]
   let body = response ^. responseBody -- . key "data" . _String
-  print body
-  setSGR [Reset]
-  testOutJson body
+  printRed body
+  outJson body
+
+getData :: IO (Response BSL.ByteString)
+getData = do
+  let uri = newSrcUri $ srcGames >>> withId "smo"
+  let params = []
+  printRed uri
+  getSrc uri params
 
 main :: IO ()
 main = do
-  --r <- gameQuery [("name", "sm64")]
-  r <- getResource (GamesId "sm64") []
+  r <- getData
   showResponse r
   {-let dec = eitherDecode json -- :: Either String Game
   let enc = encode dec

@@ -1,76 +1,43 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Lib where
 
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (.~), (<>=), (<>~))
 import Data.ByteString.Lazy (ByteString)
 import Data.Text (Text)
-import Network.Wreq (Response, asJSON, defaults, get, getWith, header, params)
+import Network.URI (URI)
+import Network.URI.Lens (uriPathLens)
+import Network.URI.Static (uri)
+import Network.Wreq (Response, defaults, getWith, header, params)
 
-api :: String
-api = "https://www.speedrun.com/api/v1"
+api :: URI
+api = [uri|https://www.speedrun.com/api/v1|]
 
-type ParamKey = Text
+type QueryKeyValue = (Text, Text)
 
-type ParamValue = Text
-
-type ParamKvp = (ParamKey, ParamValue)
-
-newQuery :: String -> [ParamKvp] -> IO (Response ByteString)
-newQuery uri paramKvps =
+getSrc :: URI -> [QueryKeyValue] -> IO (Response ByteString)
+getSrc uri queries =
   let opts =
         defaults
           & header "Accept" .~ ["application/json"]
-          & header "User-Agent" .~ ["hSRcom_pre-alpha"]
-          & params .~ paramKvps
-   in getWith opts uri
+          & header "User-Agent" .~ ["hSRcom_pre-alpha (https://bit.ly/hSRComGitHub)"]
+          & params .~ queries
+   in getWith opts $ show uri
 
-class Uri a where
-  uriToString :: a -> String
+type Id = String
 
-data GamesDerivative
-  = Categories
-  | Levels
-  | Variables
-  | DerivedGames
-  | Records
+newSrcUri :: (URI -> URI) -> URI
+newSrcUri builder = builder api
 
-instance Uri GamesDerivative where
-  uriToString Categories = "/categories"
-  uriToString Levels = "/levels"
-  uriToString Variables = "/variables"
-  uriToString DerivedGames = "/derived-games"
-  uriToString Records = "/records"
+uriBuilderAddPath :: URI -> String -> URI
+uriBuilderAddPath base path = base & uriPathLens <>~ path
 
-type GameId = String
+srcGames :: URI -> URI
+srcGames base = uriBuilderAddPath base "/games"
 
-type LevelId = String
+withId :: String -> URI -> URI
+withId id base = uriBuilderAddPath base $ mconcat ["/", id]
 
-type CategoryId = String
-
-data GamesUri
-  = AllGames
-  | GamesId GameId
-  | GamesBy GameId GamesDerivative
-
-instance Uri GamesUri where
-  uriToString AllGames = "/games"
-  uriToString (GamesId id) = mconcat ["/games/", id]
-  uriToString (GamesBy id derivative) = mconcat ["/games/", id, uriToString derivative]
-
-data LeaderboardParam
-  = Category CategoryId
-  | LevelCategory LevelId CategoryId
-
-instance Uri LeaderboardParam where
-  uriToString (Category catId) = mconcat ["/category/", catId]
-  uriToString (LevelCategory levelId catId) = mconcat ["/level/", levelId, "/", catId]
-
-data Leaderboards
-  = Leaderboard GameId LeaderboardParam
-
-instance Uri Leaderboards where
-  uriToString (Leaderboard gameId lbParam) = mconcat ["/leaderboards/", gameId, uriToString lbParam]
-
-getResource :: Uri a => a -> [ParamKvp] -> IO (Response ByteString)
-getResource uri = newQuery $ api <> uriToString uri
+srcLeaderboards :: URI -> URI
+srcLeaderboards base = uriBuilderAddPath base "/leaderboards"
