@@ -21,7 +21,7 @@ getSrc uri queries =
   let opts =
         defaults
           & header "Accept" .~ ["application/json"]
-          & header "User-Agent" .~ ["hSRcom_pre-alpha (https://bit.ly/hSRComGitHub)"]
+          & header "User-Agent" .~ ["hSRcom_pre-alpha (https://bit.ly/hSRcomGitHub)"]
           & params .~ queries
    in getWith opts $ show uri
 
