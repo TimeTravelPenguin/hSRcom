@@ -9,11 +9,6 @@
   },
   "tasks": [
     {
-      "label": "Restart LSP Server",
-      "type": "process",
-      "command": "${config:}"
-    },
-    {
       // F7
       "group": {
         "kind": "build",
