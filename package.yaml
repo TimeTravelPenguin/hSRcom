@@ -24,9 +24,13 @@ dependencies:
   - wreq
   - bytestring
   - text
+  - utf8-string
   - strict
   - lens
   - aeson
+  - lens-aeson
+  - csv
+  - ansi-terminal
 
 library:
   default-extensions:
