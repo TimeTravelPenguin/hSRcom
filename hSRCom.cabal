@@ -42,6 +42,7 @@ library
     , csv
     , lens
     , lens-aeson
+    , network-uri
     , strict
     , text
     , utf8-string
@@ -64,6 +65,7 @@ executable hSRCom-exe
     , hSRCom
     , lens
     , lens-aeson
+    , network-uri
     , strict
     , text
     , utf8-string
@@ -74,12 +76,14 @@ test-suite hSRCom-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LibTests
       Paths_hSRCom
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , ansi-terminal
     , base >=4.7 && <5
     , bytestring
@@ -87,6 +91,7 @@ test-suite hSRCom-test
     , hSRCom
     , lens
     , lens-aeson
+    , network-uri
     , strict
     , text
     , utf8-string

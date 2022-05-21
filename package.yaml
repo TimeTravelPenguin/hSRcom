@@ -30,6 +30,7 @@ dependencies:
   - aeson
   - lens-aeson
   - csv
+  - network-uri
   - ansi-terminal
 
 library:
@@ -58,3 +59,4 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - hSRCom
+      - QuickCheck
